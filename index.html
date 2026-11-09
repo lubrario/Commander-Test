@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0d1014" />
+  <meta name="description" content="Painel de singles de Magic: The Gathering da Taberna Geek. Estoque, histórico e triagem para Commander." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>Taberna Vault — MTG Singles</title>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M20 2 36 12v16L20 38 4 28V12L20 2Z" stroke="currentColor" stroke-width="1.5"/><path d="M20 7 31 14v12l-11 7-11-7V14l11-7Z" stroke="currentColor" stroke-width="1.3"/><path d="m20 11 5 9-5 9-5-9 5-9Z" fill="currentColor"/></svg></div>
+      <div><strong>Taberna<span>Vault</span></strong><small>MTG INTELLIGENCE</small></div>
+    </div>
+    <div class="side-heading">WORKSPACE</div>
+    <nav class="nav" aria-label="Navegação principal">
+      <button class="nav-item active" data-view="dashboard"><span class="nav-symbol">◈</span><span>Visão geral</span></button>
+      <button class="nav-item" data-view="catalog"><span class="nav-symbol">▦</span><span>Catálogo de singles</span></button>
+      <button class="nav-item" data-view="changes"><span class="nav-symbol">⇄</span><span>Alterações</span></button>
+      <button class="nav-item" data-view="commander"><span class="nav-symbol">♜</span><span>Commander Lab</span></button>
+      <button class="nav-item" data-view="sources"><span class="nav-symbol">⌁</span><span>Fonte e importação</span></button>
+    </nav>
+    <div class="side-separator"></div>
+    <div class="side-heading">FONTE DE DADOS</div>
+    <div class="source-mini" id="source-mini"><span class="status-dot waiting"></span><div><strong>Não configurada</strong><small>Conecte um CSV autorizado</small></div></div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-tip"><span>✦</span><div><strong>Feito para Commander</strong><small>Os dados de hoje serão a base dos seus próximos decks.</small></div></div>
+      <p>v2.0 <span>·</span> Magic: The Gathering<br>Taberna Geek · monitor independente</p>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb"><button id="menu-toggle" class="icon-button mobile-menu" aria-label="Abrir menu">☰</button><span>Taberna Vault</span><i>/</i><strong id="breadcrumb-current">Visão geral</strong></div>
+      <div class="top-actions"><div class="top-state" id="top-state"><span class="status-dot waiting"></span><span>Sem catálogo carregado</span></div><button class="button button-primary" id="top-sync"><span class="sync-symbol">↻</span> Conferir estoque</button></div>
+    </header>
+    <main class="main">
+      <section class="view active" id="view-dashboard">
+        <div class="page-intro"><div><div class="eyebrow">PAINEL DE CONTROLE <span class="eyebrow-line"></span> MTG SINGLES</div><h1>Seu estoque. <em>Sob controle.</em></h1><p>Uma visão organizada das cartas da Taberna Geek, pronta para consulta, comparação e planejamento de Commander.</p></div><div class="date-meta" id="date-meta">Última importação: —</div></div>
+        <div class="notice" id="global-notice"><span class="notice-icon">i</span><div><strong>Fonte de estoque ainda não conectada</strong><p>O catálogo oficial não está disponível para consulta automatizada. Conecte um CSV completo autorizado ou importe um arquivo; não vamos confundir anúncios históricos com estoque atual.</p></div><button class="text-link" data-open="sources">Configurar fonte ↗</button></div>
+        <div class="metrics">
+          <article class="metric"><div class="metric-top"><span>CARTAS ÚNICAS</span><span class="metric-icon">✧</span></div><strong id="metric-names">—</strong><small>Nomes diferentes no catálogo</small><div class="metric-rule gold"></div></article>
+          <article class="metric"><div class="metric-top"><span>OFERTAS</span><span class="metric-icon">▦</span></div><strong id="metric-offers">—</strong><small>Registros de singles catalogados</small><div class="metric-rule blue"></div></article>
+          <article class="metric"><div class="metric-top"><span>COM QUANTIDADE</span><span class="metric-icon">◈</span></div><strong id="metric-positive">—</strong><small>Ofertas com unidades acima de zero</small><div class="metric-rule green"></div></article>
+          <article class="metric"><div class="metric-top"><span>QTD. DESCONHECIDA</span><span class="metric-icon">?</span></div><strong id="metric-unknown">—</strong><small>Sem quantidade informada na fonte</small><div class="metric-rule gray"></div></article>
+        </div>
+        <div class="dashboard-panels">
+          <section class="panel overview-card"><div class="panel-heading"><div><span class="label-upper">RESUMO</span><h2>Última fotografia do catálogo</h2></div><span class="outline-tag" id="snapshot-type">Sem dados</span></div><div id="snapshot-summary" class="empty-dashboard"><div class="empty-emblem">◈</div><h3>O catálogo começa aqui</h3><p>Importe a primeira planilha para acompanhar preços, quantidades e histórico das singles.</p><button class="button button-outline" data-open="sources">Importar catálogo</button></div></section>
+          <section class="panel activity-card"><div class="panel-heading"><div><span class="label-upper">HISTÓRICO</span><h2>Últimas consultas</h2></div><button class="quiet-action" data-open="changes">Ver todas ↗</button></div><div id="recent-snapshots"><div class="empty-list">Nenhuma consulta registrada ainda.</div></div></section>
+        </div>
+        <div class="quick-panel"><div><span class="label-upper">PRÓXIMA ETAPA</span><h2>Do estoque ao seu próximo Commander</h2><p>Encontre cartas por cor, acompanhe preços e comece a explorar quais singles servem para seu comandante.</p></div><button class="button button-outline" data-open="commander">Abrir Commander Lab <span>→</span></button></div>
+      </section>
+
+      <section class="view" id="view-catalog">
+        <div class="page-intro compact"><div><div class="eyebrow">BIBLIOTECA / SINGLES</div><h1>Catálogo de <em>cartas.</em></h1><p>Pesquise nomes, edições, preços e disponibilidade no último catálogo importado.</p></div><a class="button button-outline" href="/api/export.csv">↓ Exportar CSV</a></div>
+        <section class="panel catalog-panel"><div class="filter-bar"><label class="field search-field"><span>BUSCAR CARTA</span><div class="input-icon"><span>⌕</span><input id="search-input" autocomplete="off" placeholder="Ex.: Sol Ring, Sliver, Counterspell…" /></div></label><label class="field set-field"><span>EDIÇÃO</span><input id="search-set" autocomplete="off" placeholder="Ex.: CMM" maxlength="20" /></label><label class="field sort-field"><span>ORDENAÇÃO</span><select id="search-sort"><option value="name">Nome A–Z</option><option value="price_asc">Menor preço</option><option value="price_desc">Maior preço</option><option value="quantity">Maior quantidade</option></select></label></div><div class="catalog-tools"><label class="toggle-label"><input type="checkbox" id="search-stock" checked /><span class="toggle-slider"></span> Apenas quantidade positiva</label><div class="muted" id="catalog-count">0 ofertas</div></div><div class="table-scroll"><table><thead><tr><th>CARTA</th><th>EDIÇÃO</th><th>IDIOMA / ESTADO</th><th>PREÇO</th><th>QUANTIDADE</th><th>LINK</th></tr></thead><tbody id="catalog-rows"><tr><td colspan="6" class="table-empty">Nenhum catálogo importado.</td></tr></tbody></table></div><div class="pagination"><span id="page-info">Página 0 de 0</span><div><button class="page-button" id="page-prev" aria-label="Página anterior">←</button><button class="page-button" id="page-next" aria-label="Próxima página">→</button></div></div></section><p class="small-explain" id="catalog-disclaimer">Quantidade positiva significa apenas que havia unidades no arquivo importado. Não comprova disponibilidade atual.</p>
+      </section>
+
+      <section class="view" id="view-changes">
+        <div class="page-intro compact"><div><div class="eyebrow">CONTROLE DE VERSÕES</div><h1>O que <em>mudou?</em></h1><p>Compare as duas últimas fotografias do catálogo para identificar entradas, saídas e alterações.</p></div></div>
+        <div class="metrics metrics-three"><article class="metric"><div class="metric-top"><span>NOVAS OFERTAS</span><span class="metric-icon">↗</span></div><strong id="change-new">—</strong><small>Presentes só na versão mais nova</small><div class="metric-rule green"></div></article><article class="metric"><div class="metric-top"><span>OFERTAS AUSENTES</span><span class="metric-icon">↘</span></div><strong id="change-gone">—</strong><small>Ausentes na versão mais nova</small><div class="metric-rule gray"></div></article><article class="metric"><div class="metric-top"><span>ALTERAÇÕES</span><span class="metric-icon">⇄</span></div><strong id="change-updated">—</strong><small>Mudanças de preço ou quantidade</small><div class="metric-rule blue"></div></article></div>
+        <section class="panel"><div class="panel-heading"><div><span class="label-upper">COMPARAÇÃO</span><h2>Diferenças entre versões</h2></div></div><p class="section-note">Comparações são confiáveis apenas quando ambas as importações representam o mesmo catálogo completo.</p><div class="table-scroll"><table><thead><tr><th>TIPO</th><th>CARTA</th><th>EDIÇÃO</th><th>PREÇO ANTERIOR → NOVO</th><th>QUANTIDADE ANTERIOR → NOVA</th></tr></thead><tbody id="changes-rows"><tr><td colspan="5" class="table-empty">Importe pelo menos dois catálogos completos.</td></tr></tbody></table></div></section>
+      </section>
+
+      <section class="view" id="view-commander">
+        <div class="page-intro compact"><div><div class="eyebrow">CONSTRUÇÃO DE DECK / FASE 1</div><h1>Commander <em>Lab.</em></h1><p>Confira a identidade de cores e quais singles do catálogo podem entrar no deck.</p></div><span class="outline-tag">PRÉVIA</span></div>
+        <div class="notice"><span class="notice-icon">✦</span><div><strong>Filtro de legalidade e cor, não gerador de deck</strong><p>Esta primeira etapa identifica cartas compatíveis com o comandante. A pontuação de sinergias e a construção automática das 99 cartas serão integradas depois.</p></div></div>
+        <div class="commander-layout"><section class="panel"><span class="label-upper">ESCOLHA SEU COMANDANTE</span><h2 class="inside-title">Uma carta. Infinitas possibilidades.</h2><label class="field commander-search"><span>NOME EXATO DO COMANDANTE</span><input id="commander-input" placeholder="Ex.: The First Sliver" autocomplete="off" /></label><div class="examples">Experimente: <button data-commander="The First Sliver">The First Sliver</button><button data-commander="Nath of the Gilt-Leaf">Nath of the Gilt-Leaf</button><button data-commander="Atraxa, Praetors' Voice">Atraxa</button></div><button class="button button-primary full" id="commander-check">Analisar compatibilidade →</button><div class="commander-note">Para identificar cores e legalidade, utiliza dados públicos da Scryfall — nunca preços ou estoque da Scryfall.</div></section>
+        <section class="panel"><div class="panel-heading"><div><span class="label-upper">RESULTADO</span><h2>Cartas compatíveis</h2></div></div><div id="commander-results" class="empty-commander"><div class="empty-emblem">♜</div><p>Escolha um comandante para começar a análise.</p></div></section></div>
+        <section class="panel" id="compatible-panel" hidden><div class="panel-heading"><div><span class="label-upper">OFERTAS DO CATÁLOGO</span><h2>Possíveis cartas para o deck</h2></div><span class="outline-tag" id="compatible-total">0 ofertas</span></div><div class="table-scroll"><table><thead><tr><th>CARTA</th><th>EDIÇÃO</th><th>TIPO</th><th>PREÇO</th><th>QUANTIDADE</th></tr></thead><tbody id="compatible-rows"></tbody></table></div><p class="section-note">Resultados limitados aos primeiros 1.000 registros compatíveis; não garantem sinergia nem disponibilidade ao vivo.</p></section>
+      </section>
+
+      <section class="view" id="view-sources">
+        <div class="page-intro compact"><div><div class="eyebrow">DATA PIPELINE</div><h1>Conecte sua <em>fonte.</em></h1><p>Atualize o estoque quando quiser e mantenha versões anteriores para comparações.</p></div></div>
+        <div class="notice"><span class="notice-icon">!</span><div><strong>Modo gratuito: dados temporários no servidor</strong><p>O Render gratuito hiberna após inatividade e não oferece disco persistente. O histórico pode desaparecer. Use os botões de backup nesta página após importar qualquer catálogo, e restaure quando necessário.</p></div></div>
+        <div class="notice"><span class="notice-icon">!</span><div><strong>Não existe integração oficial ativa com a Taberna Geek</strong><p>O monitor precisa receber um CSV completo fornecido pela loja, ou um endereço HTTPS público autorizado de exportação. Não acessa páginas bloqueadas nem supõe que anúncios de terceiros estejam atualizados.</p></div></div>
+        <div class="source-grid">
+          <section class="panel source-panel"><div class="source-icon">⇧</div><span class="label-upper">MÉTODO 01</span><h2>Importar CSV</h2><p>Selecione um arquivo de singles MTG fornecido pela Taberna Geek. Cada importação cria uma fotografia independente.</p><label class="dropzone" id="dropzone"><input type="file" id="csv-file" accept=".csv,text/csv,text/plain" /><span class="drop-icon">▤</span><strong id="file-name">Clique para selecionar um CSV</strong><span>ou arraste o arquivo até aqui</span></label><label class="check-row"><input type="checkbox" id="csv-historical" /> Marcar como referência histórica (não é estoque atual)</label><button class="button button-primary full" id="upload-button">Importar catálogo →</button><a class="muted-link" href="/api/export.csv">Baixar último catálogo como CSV</a></section>
+          <section class="panel source-panel"><div class="source-icon">↻</div><span class="label-upper">MÉTODO 02</span><h2>Feed CSV autorizado</h2><p>Caso a loja forneça uma URL HTTPS pública para o arquivo completo, você poderá consultá-la sob demanda.</p><label class="field"><span>URL HTTPS DO ARQUIVO CSV</span><input id="feed-url" type="url" placeholder="https://loja.exemplo/estoque.csv" /></label><button class="button button-outline full" id="save-feed">Salvar endereço</button><button class="button button-primary full" id="sync-button">↻ Consultar feed agora</button><p class="source-footnote">Sem feed configurado, a consulta automática não pode verificar o estoque real. Nenhuma consulta é executada em segundo plano.</p></section>
+        </div>
+        <section class="panel admin-panel" id="admin-panel"><div><span class="label-upper">SEGURANÇA</span><h2>Chave de administrador</h2><p>Em hospedagens públicas, configure a chave de acesso fornecida por você na publicação. Ela autoriza importações e consultas que alteram o banco.</p></div><div class="admin-input"><input type="password" id="admin-token" placeholder="Sua chave de administrador" autocomplete="off" /><button class="button button-outline" id="save-token">Aplicar chave</button></div></section>
+        <section class="panel backup-panel">
+          <div><span class="label-upper">RENDER GRATUITO · PROTEÇÃO DOS SEUS DADOS</span>
+            <h2>Backup e restauração</h2>
+            <p>No plano gratuito, o Render pode apagar os dados quando o site hiberna, reinicia ou é republicado. <strong>Baixe um backup depois de cada importação</strong> e guarde o arquivo no seu computador. O backup salva o histórico completo, ofertas, metadados e a configuração da fonte, mas não guarda sua senha.</p></div>
+          <div class="backup-actions"><button class="button button-primary" id="download-backup">↓ Baixar backup ZIP</button><label class="field backup-file"><span>ARQUIVO ZIP SALVO</span><input type="file" id="restore-file" accept=".zip,application/zip" /></label><button class="button button-outline" id="restore-backup">Restaurar backup</button></div>
+          <p class="section-note">A restauração substitui os registros existentes. Para funcionar no site público, informe antes sua chave de administrador.</p>
+        </section>
+        <section class="panel history-panel"><div class="panel-heading"><div><span class="label-upper">TRILHA DE AUDITORIA</span><h2>Histórico de importações</h2></div><a class="quiet-action" href="/api/export.json">Exportar JSON ↗</a></div><div id="snapshot-history" class="history-list"><p class="muted">Nenhuma importação ainda.</p></div></section>
+        <section class="panel enrich-panel"><div><span class="label-upper">INTEGRAÇÃO SÉRIA COM MTG</span><h2>Metadados para Commander</h2><p>Após carregar o catálogo, consulte a Scryfall para preencher identidade de cores, texto Oracle, tipo, valor de mana e legalidade Commander. Limite de 225 nomes por clique.</p></div><button class="button button-outline" id="enrich-button">✦ Enriquecer cartas</button></section>
+      </section>
+    </main>
+    <footer class="footer"><span>Taberna Vault · Ferramenta independente para uso pessoal</span><span>Estoque ≠ disponibilidade ao vivo sem fonte atualizada</span></footer>
+  </div>
+</div>
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+<script src="/app.js" defer></script>
+</body>
+</html>

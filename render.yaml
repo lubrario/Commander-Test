@@ -1,0 +1,16 @@
+# Taberna Vault — Render Gratuito (sem plano pago e sem disco)
+services:
+  - type: web
+    name: taberna-vault-mtg
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: TABERNA_ADMIN_TOKEN
+        sync: false
+      - key: TABERNA_DB
+        value: /tmp/taberna_inventory.sqlite3
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000

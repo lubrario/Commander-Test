@@ -1,0 +1,37 @@
+TABERNA VAULT — VERSÃO GRATUITA NO RENDER
+
+ESTA VERSÃO NÃO CONTRATA O PLANO PAGO DO RENDER.
+O arquivo render.yaml contém "plan: free" e NÃO possui bloco "disk".
+
+SE VOCÊ JÁ COLOCOU A VERSÃO ANTERIOR NO GITHUB:
+1. Abra o repositório taberna-vault no GitHub.
+2. Faça upload dos arquivos deste pacote NA RAIZ do repositório;
+   substitua os arquivos antigos de mesmo nome, especialmente render.yaml,
+   Dockerfile, app.py, index.html, app.js e styles.css.
+3. Abra o arquivo render.yaml no GitHub e CONFIRA que diz "plan: free".
+4. Abra dashboard.render.com > New > Blueprint, conecte o repositório,
+   ou sincronize o Blueprint existente se ele não tiver sido criado.
+5. Confira que o Render mostra Free, SEM disco pago e SEM cobrança mensal fixa.
+6. Na variável TABERNA_ADMIN_TOKEN informe uma chave longa e exclusiva,
+   de no mínimo 32 caracteres. NÃO ponha a chave no GitHub.
+7. Confirme a criação e visite a URL .onrender.com fornecida no painel.
+8. Dentro do site, abra Fonte e importação > Chave de administrador;
+   informe a mesma chave para importar dados e realizar backups.
+
+SE O RENDER EXIGIR PAGAMENTO, NÃO CONFIRME. Verifique se o arquivo
+render.yaml foi realmente substituído e se o plano escolhido é Free.
+
+ATENÇÃO: O PLANO GRATUITO NÃO GUARDA O BANCO LOCAL DEFINITIVAMENTE.
+O Render hiberna após 15 minutos sem visitas e perde dados gravados
+quando reinicia, hiberna ou republica. Na página Fonte e importação:
+- clique em "Baixar backup ZIP" após cada importação ou atualização;
+- guarde o ZIP no computador;
+- após perder os dados, clique "Restaurar backup" e selecione o ZIP.
+Isso é um sistema de testes, não armazenamento permanente.
+
+O estoque ao vivo da loja continua sem integração direta. Para importar,
+precisa de CSV da loja ou feed autorizado. Nenhuma disponibilidade antiga
+é apresentada como disponibilidade confirmada.
+
+A leitura do catálogo é pública na URL. Só operações administrativas
+exigem chave. Não inclua dados pessoais/secretos no catálogo.
