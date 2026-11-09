@@ -1,3 +1,22 @@
+# Taberna Vault v4 — LigaMagic: Taberna Geek (41369)
+
+A versão 4 preserva a configuração gratuita do Render e adiciona a aba **LigaMagic · loja 41369**, com acesso à página que o usuário informou: https://www.ligamagic.com.br/?view=mp/showcase/home&id=41369
+
+## Novo fluxo
+
+1. Na aba LigaMagic, cole uma decklist (uma carta por linha, por exemplo `1 Sol Ring`).
+2. Clique em **Preparar buscas**.
+3. Clique em **Buscar carta** para pesquisar na LigaMagic (a busca é **global**, não filtrada pela loja).
+4. Confirme manualmente que o vendedor da oferta é **Taberna Geek**, ID **41369**, antes de digitar preço e quantidade.
+5. Clique em **Salvar**; os valores são guardados no `localStorage` do navegador (não no SQLite).
+6. Baixe um **CSV de conferências manuais** para conservar os resultados. O arquivo é parcial e não deve ser tratado como catálogo completo nem importado como estoque total.
+
+**Importante:** a LigaMagic responde HTTP 403 a consultas automatizadas neste ambiente. Esta versão **NÃO** sincroniza automaticamente preços, quantidades nem o estoque inteiro. A pesquisa por carta não filtra automaticamente por loja.
+
+## Publicação no Render gratuito
+
+Mantenha o mesmo serviço existente e substitua os arquivos na raiz do repositório GitHub (inclusive `index.html`, `app.js`, `styles.css`). O `render.yaml` continua no plano Free, sem disco permanente. Os backups do SQLite seguem necessários para catálogo importado. As conferências manuais ficam no navegador do usuário e devem ser exportadas como CSV.
+
 # Taberna Vault — versão Render gratuita
 
 **Sem plano Free, sem disco pago:** veja [PUBLICAR_SEM_PROGRAMAR.txt](PUBLICAR_SEM_PROGRAMAR.txt).

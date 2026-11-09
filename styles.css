@@ -13,3 +13,16 @@
 .backup-file{min-width:220px;flex:1;margin:0}
 .backup-file input{width:100%}
 @media(max-width:720px){.backup-actions{flex-direction:column;align-items:stretch}.backup-file{width:100%}}
+
+/* LigaMagic — consulta assistida */
+.liga-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+.liga-heading{font-size:20px;letter-spacing:-.5px;margin:8px 0 16px}
+.liga-textarea{width:100%;min-height:170px;resize:vertical;background:#1b1e24;color:var(--text);border:1px solid #454752;border-radius:7px;padding:14px;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+.liga-textarea:focus,.liga-cell-input:focus{outline:1px solid var(--gold);border-color:var(--gold)}
+.liga-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 0}
+.liga-steps{display:grid;gap:14px;margin:16px 0 22px;font-size:13px;color:#a8aeb6;line-height:1.6}
+.liga-steps strong{color:var(--gold);margin-right:8px}.liga-steps b{color:#d9d7d1}
+.liga-results{margin-top:16px}.liga-summary{font-size:12px;background:#252a32;border:1px solid #454b53;border-radius:7px;padding:12px 15px;margin-bottom:17px;line-height:1.6;color:#b7bec7}
+.liga-cell-input{background:#1b1e24;color:var(--text);border:1px solid #454752;border-radius:6px;padding:9px;width:112px;font-size:12px}
+.liga-checked{font-size:11px;color:#8dd1a5}.liga-pending{font-size:11px;color:#d3b78d}.liga-footer{margin-top:18px}
+@media(max-width:970px){.liga-layout{grid-template-columns:1fr}}

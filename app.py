@@ -527,7 +527,7 @@ STATIC_FILES = {'/': (HTML, 'text/html; charset=utf-8'), '/index.html': (HTML, '
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = 'TabernaMTG/3.0'
+    server_version = 'TabernaMTG/4.0'
 
     @property
     def store(self):

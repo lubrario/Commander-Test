@@ -38,7 +38,7 @@ function view(which){
   currentView=which;
   $$('.view').forEach(el=>el.classList.toggle('active',el.id==='view-'+which));
   $$('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.view===which));
-  $('#breadcrumb-current').textContent=({'dashboard':'Visão geral','catalog':'Catálogo de singles','changes':'Alterações','commander':'Commander Lab','sources':'Fonte e importação'})[which]||which;
+  $('#breadcrumb-current').textContent=({'dashboard':'Visão geral','catalog':'Catálogo de singles','changes':'Alterações','commander':'Commander Lab','ligamagic':'LigaMagic · Taberna Geek','sources':'Fonte e importação'})[which]||which;
   $('#sidebar').classList.remove('shown');
   window.scrollTo({top:0,behavior:'smooth'});
   if(which==='catalog')search();
@@ -197,3 +197,91 @@ $('#restore-backup').addEventListener('click',async()=>{
     $('#restore-file').value='';await refresh();
   }catch(e){toast(e.message,'error')}finally{busy(btn,false)}
 });
+
+
+// LigaMagic: ponte de consulta assistida, sem prometer coleta automatizada.
+const LIGA_STORE_ID = '41369';
+const LIGA_STORE_URL = 'https://www.ligamagic.com.br/?view=mp/showcase/home&id=41369';
+const LIGA_STORAGE = 'taberna-vault-ligamagic-41369-v1';
+const LIGA_LIST_STORAGE = 'taberna-vault-ligamagic-decklist-v1';
+let ligaCards = [];
+function ligaRead() {
+  try { const v=JSON.parse(localStorage.getItem(LIGA_STORAGE)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{}; }
+  catch{return {}}
+}
+function ligaSave(v){try{localStorage.setItem(LIGA_STORAGE,JSON.stringify(v));return true}catch{toast('O navegador não permitiu salvar. Exporte o CSV para preservar seus dados.','error');return false}}
+function ligaKey(name){return name.trim().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'')}
+function ligaCardUrl(name){return 'https://www.ligamagic.com.br/?view=cards/search&card='+encodeURIComponent(name)}
+function ligaParse(input){
+  const output=new Map();
+  const lines=input.replace(/\r/g,'').split('\n').slice(0,500);
+  for(let line of lines){
+    line=line.trim();if(!line||/^\/\//.test(line)||/^#/.test(line)||/^(commander|mainboard|sideboard|maybeboard|criaturas|terrenos|instantes|feitiços|artefatos|encantamentos|planeswalkers|deck|main):?$/i.test(line))continue;
+    line=line.replace(/\s+\/\/.*$/,'').trim();
+    let count=1, name=line;
+    const m=line.match(/^(\d{1,3})\s*[x×]?\s+(.+)$/i);
+    if(m){count=Number(m[1]);name=m[2]}
+    else {const n=line.match(/^(.+?)\s+[x×]\s*(\d{1,3})$/i);if(n){name=n[1];count=Number(n[2])}}
+    name=name.replace(/\s+\(([A-Z0-9]{2,8})\)(?:\s+[A-Za-z0-9★-]{1,8})?\s*$/,'').replace(/\s+\[[A-Z0-9]{2,8}\](?:\s+[A-Za-z0-9★-]{1,8})?\s*$/,'').trim();
+    if(!count||!name||name.length>180)continue;
+    const key=ligaKey(name);if(output.has(key))output.get(key).need+=count;else output.set(key,{name,need:count});
+    if(output.size>=150)break;
+  }
+  return [...output.values()];
+}
+function ligaRender(){
+  const saved=ligaRead();let reviewed=0, priced=0, complete=0, cost=0;
+  const html=ligaCards.map((r,i)=>{
+    const item=saved[ligaKey(r.name)]||{};
+    const reviewedNow=!!item.observed_at;
+    if(reviewedNow){reviewed++;if(item.price!=null){priced++;cost+=Number(item.price)*r.need};if(item.quantity!=null&&item.quantity>=r.need)complete++}
+    const status=reviewedNow?new Date(item.observed_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):'Pendente';
+    return `<tr><td><strong>${esc(r.name)}</strong><span class="sub-line">Precisa: ${number(r.need)} un.</span></td><td><a class="link-arrow" href="${esc(ligaCardUrl(r.name))}" target="_blank" rel="noopener noreferrer">Buscar carta ↗</a></td><td><input class="liga-cell-input" type="text" inputmode="decimal" data-liga-price="${i}" aria-label="Preço unitário de ${esc(r.name)}" value="${item.price==null?'':esc(item.price)}" placeholder="Ex.: 2,50" /></td><td><input class="liga-cell-input" type="number" inputmode="numeric" min="0" step="1" data-liga-qty="${i}" aria-label="Estoque de ${esc(r.name)}" value="${item.quantity==null?'':esc(item.quantity)}" placeholder="—" /></td><td><span class="${reviewedNow?'liga-checked':'liga-pending'}">${esc(status)}</span></td><td><button class="page-button" data-liga-save="${i}">Salvar</button></td></tr>`;
+  }).join('');
+  $('#liga-rows').innerHTML=html||'<tr><td class="table-empty" colspan="6">Nenhuma carta detectada. Cole uma lista válida.</td></tr>';
+  $('#liga-progress').textContent=`${reviewed} / ${ligaCards.length} conferidas`;
+  $('#liga-summary').textContent=ligaCards.length?`${ligaCards.length} cartas diferentes · ${reviewed} revisadas · ${priced} com preço · ${complete} com estoque suficiente informado · Subtotal conhecido: ${cost.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} (não inclui cartas sem preço)`:'Cole uma lista e clique em Preparar buscas.';
+}
+$('#liga-decklist').value=(()=>{try{return localStorage.getItem(LIGA_LIST_STORAGE)||''}catch{return ''}})();
+$('#liga-build').addEventListener('click',()=>{
+  const input=$('#liga-decklist').value.trim();
+  ligaCards=ligaParse(input);
+  try{localStorage.setItem(LIGA_LIST_STORAGE,input)}catch{}
+  ligaRender();
+  if(!ligaCards.length)toast('A lista está vazia ou não contém nomes válidos.','error');
+  else toast(`${ligaCards.length} nomes preparados. Abra a busca de cada carta e confirme a loja 41369.`,'success');
+});
+$('#liga-copy').addEventListener('click',async()=>{
+  const text=$('#liga-decklist').value.trim();if(!text)return toast('Cole primeiro uma lista.','error');
+  try{await navigator.clipboard.writeText(text);toast('Lista copiada para a área de transferência.','success')}catch{toast('Não foi possível copiar automaticamente. Selecione o texto e copie.','error')}
+});
+$('#liga-rows').addEventListener('click',e=>{
+  const button=e.target.closest('[data-liga-save]');if(!button)return;
+  const i=Number(button.dataset.ligaSave), card=ligaCards[i];if(!card)return;
+  const p=$(`[data-liga-price="${i}"]`).value.trim(),q=$(`[data-liga-qty="${i}"]`).value.trim();
+  if(!p&&!q)return toast('Informe preço ou quantidade observados na oferta da Taberna Geek.','error');
+  const normalizedPrice=p.replace(',', '.');const pn=p===''?null:Number(normalizedPrice),qn=q===''?null:Number(q);
+  if((pn!==null&&(!/^\d+(?:[.,]\d{1,2})?$/.test(p)||!Number.isFinite(pn)||pn<0))||(qn!==null&&(!Number.isInteger(qn)||qn<0)))return toast('Confira os valores de preço e quantidade.','error');
+  const saved=ligaRead();saved[ligaKey(card.name)]={name:card.name,price:pn,quantity:qn,observed_at:new Date().toISOString(),source:'Conferência manual na LigaMagic; loja 41369'};
+  if(ligaSave(saved)){ligaRender();toast('Conferência manual salva neste navegador.','success')}
+});
+$('#liga-export').addEventListener('click',()=>{
+  if(!ligaCards.length)return toast('Prepare primeiro uma lista.','error');
+  const saved=ligaRead();
+  const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const lines=[['nome','quantidade_necessaria','preco_unitario_reais','quantidade_observada','observado_em','origem','link_busca_ligamagic','loja_id','status'].map(quote).join(';')];
+  for(const row of ligaCards){
+    const data=saved[ligaKey(row.name)];const vals=[row.name,row.need,data?.price==null?'':String(data.price).replace('.',','),data?.quantity??'',data?.observed_at||'',data?.source||'',ligaCardUrl(row.name),LIGA_STORE_ID,data?'conferido_manual':'nao_conferido'];
+    lines.push(vals.map(quote).join(';'));
+  }
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='taberna-ligamagic-conferencias-'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('CSV de conferências manuais baixado. Não é o estoque completo.','success');
+});
+$('#liga-clear').addEventListener('click',()=>{
+  if(!confirm('Apagar todas as conferências manuais guardadas neste navegador? A lista de cartas será mantida.'))return;
+  try{localStorage.removeItem(LIGA_STORAGE)}catch{}
+  ligaRender();toast('Conferências apagadas.','success');
+});
+if($('#liga-decklist').value.trim())ligaCards=ligaParse($('#liga-decklist').value);
+ligaRender();
