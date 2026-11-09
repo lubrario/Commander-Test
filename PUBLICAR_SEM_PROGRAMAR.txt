@@ -1,10 +1,28 @@
-TABERNA VAULT V4 - LOJA LIGAMAGIC 41369
+TABERNA VAULT V5 — DECK INTELIGENTE (RENDER GRATUITO)
 
-1. Extraia o ZIP.
-2. No GitHub, substitua os arquivos anteriores pelos arquivos deste pacote.
-3. O Render deve iniciar uma nova publicação automaticamente.
-4. No site, abra "LigaMagic · loja 41369" no menu esquerdo.
-5. Cole sua decklist, clique Preparar buscas, confira preços manualmente na LigaMagic e salve.
-6. Exporte as conferências como CSV para preservar seus dados.
+1. Baixe este ZIP e extraia.
+2. No GitHub, substitua todos os arquivos do seu repositório pelos arquivos desta pasta.
+   Verifique se app.py, builder_engine.py, Dockerfile, index.html, app.js, styles.css e render.yaml
+   aparecem na página principal do repositório, não dentro de outra pasta.
+3. No Render, abra o serviço do Taberna Vault.
+4. Environment (variáveis de ambiente) -> Add Environment Variable.
+   Key: REEF_API_KEY
+   Value: a chave gerada na sua conta https://reefapi.com/
+   NÃO compartilhe essa chave e NÃO a envie ao GitHub.
+5. Salve e publique novamente: Manual Deploy -> Deploy latest commit, se necessário.
+6. No webapp, clique em Fonte e importação e aplique sua chave TABERNA_ADMIN_TOKEN.
+7. Clique em Deck inteligente, informe o comandante e uma lista de até 10 cartas.
+8. Clique em Conferir e substituir e confirme o gasto de créditos informado.
+9. Baixe o TXT ou CSV com o resultado.
 
-OBS: esta versão NÃO faz scraping automático, e a busca de carta na LigaMagic NÃO aplica filtro da loja. Confira sempre o vendedor ID 41369.
+CUSTOS E LIMITES
+- O Render segue no plano gratuito (sem disco persistente).
+- A ReefAPI é terceira e usa créditos; ela anuncia 1.000 créditos gratuitos para teste
+  e 4 créditos por consulta de carta. O site pode alterar os preços.
+- O sistema consulta até 30 cartas/alternativas por execução (até 120 créditos).
+- Sem chave ReefAPI, o webapp NÃO consulta o estoque ao vivo; usa somente o CSV.
+- Ausência na busca da LigaMagic significa 'nenhuma oferta identificada', NÃO prova
+  indisponibilidade física na Taberna Geek.
+- A ReefAPI é independente da LigaMagic e da Taberna Geek.
+- A recomendação de substitutas é heurística e deve ser revisada antes de comprar.
+- Não conseguimos testar a integração com uma conta real da ReefAPI sem sua chave.

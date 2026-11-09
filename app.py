@@ -28,6 +28,7 @@ import time
 import unicodedata
 from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler
+from builder_engine import reef_check, propose_replacements, STORE_ID, STORE_NAME
 
 BASE = Path(__file__).resolve().parent
 DEFAULT_DB = Path(os.getenv('TABERNA_DB', str(BASE / 'taberna_inventory.sqlite3')))
@@ -527,7 +528,7 @@ STATIC_FILES = {'/': (HTML, 'text/html; charset=utf-8'), '/index.html': (HTML, '
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = 'TabernaMTG/4.0'
+    server_version = 'TabernaMTG/5.0'
 
     @property
     def store(self):
@@ -574,6 +575,17 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send_file(path, mime)
             if route.path == '/health':
                 return self.send_json(200, {'ok': True})
+            if route.path == '/api/builder/status':
+                snapshot = self.store.latest()
+                return self.send_json(200, {
+                    'live_enabled': bool(os.getenv('REEF_API_KEY','').strip()),
+                    'snapshot_available': bool(snapshot),
+                    'snapshot_kind': snapshot.get('source_kind') if snapshot else None,
+                    'snapshot_date': snapshot.get('imported_at') if snapshot else None,
+                    'store_id': STORE_ID, 'store_name': STORE_NAME,
+                    'cost_per_live_check_credits': 4,
+                    'message': 'A ReefAPI exige chave privada no servidor. Sem ela, somente o CSV importado pode ser consultado.'
+                })
             if route.path == '/api/status':
                 return self.send_json(200, self.store.status())
             if route.path == '/api/snapshots':
@@ -642,6 +654,48 @@ class Handler(BaseHTTPRequestHandler):
                 restored = self.store.restore_backup(self.rfile.read(length))
                 return self.send_json(200, {'ok': True, **restored})
             payload = self.get_body()
+            if route == '/api/builder/candidates':
+                desired = str(payload.get('card', '')).strip()
+                commander = str(payload.get('commander', '')).strip()
+                if not desired or not commander or len(desired)>180 or len(commander)>180:
+                    raise ValueError('Informe comandante e carta (até 180 caracteres).')
+                return self.send_json(200, propose_replacements(desired, commander, limit=7))
+            if route == '/api/builder/availability':
+                name = str(payload.get('card','')).strip()
+                if not name or len(name)>180:
+                    raise ValueError('Informe o nome de uma carta (até 180 caracteres).')
+                try:
+                    needed = int(payload.get('quantity',1))
+                except (TypeError,ValueError):
+                    raise ValueError('Quantidade inválida.')
+                if not 1 <= needed <= 100:
+                    raise ValueError('Quantidade deve ser de 1 a 100.')
+                if os.getenv('REEF_API_KEY','').strip():
+                    return self.send_json(200, reef_check(name, needed))
+                snap = self.store.latest()
+                base = {'card':name, 'store':STORE_NAME,'store_id':STORE_ID,
+                        'needed':needed,'status':'unknown','source_kind':'snapshot',
+                        'checked_at':snap.get('imported_at') if snap else None,
+                        'price_cents':None, 'quantity':None, 'offers':[]}
+                if not snap:
+                    base.update(source='Não configurada',source_kind='unconfigured',
+                                message='Sem integração ao vivo e sem CSV importado. Configure REEF_API_KEY no Render.')
+                    return self.send_json(200,base)
+                base['source'] = 'Último CSV importado: '+snap.get('source_label','')
+                found = [r for r in self.store.cards(query=name,limit=1000) if normalize(r['name'])==normalize(name)]
+                matches = [r for r in found if r.get('quantity') is not None and r['quantity'] >= needed and r.get('price_cents') is not None]
+                if snap['source_kind']=='historical_reference':
+                    base['message']='A fonte mais recente é histórica. Não permite confirmar disponibilidade.'
+                elif matches:
+                    winner = min(matches, key=lambda x:x['price_cents'])
+                    base.update(status='snapshot_available',price_cents=winner['price_cents'],
+                                quantity=winner['quantity'], offer={'url':winner.get('url',''),'price_cents':winner['price_cents'],
+                                'quantity':winner['quantity'], 'edition':winner.get('set_code','')},
+                                message='Carta listada no CSV importado; não foi consultada ao vivo.')
+                else:
+                    base['status']='snapshot_not_found'
+                    base['message']='Sem oferta suficiente no último CSV. Isso não comprova falta de estoque atual.'
+                return self.send_json(200,base)
             if route == '/api/feed':
                 url = str(payload.get('url', '')).strip()
                 self.store.set_feed(url)

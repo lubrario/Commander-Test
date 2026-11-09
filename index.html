@@ -22,6 +22,7 @@
       <button class="nav-item" data-view="catalog"><span class="nav-symbol">▦</span><span>Catálogo de singles</span></button>
       <button class="nav-item" data-view="changes"><span class="nav-symbol">⇄</span><span>Alterações</span></button>
       <button class="nav-item" data-view="commander"><span class="nav-symbol">♜</span><span>Commander Lab</span></button>
+      <button class="nav-item" data-view="builder"><span class="nav-symbol">✧</span><span>Deck inteligente</span></button>
       <button class="nav-item" data-view="ligamagic"><span class="nav-symbol">⌕</span><span>LigaMagic · loja 41369</span></button>
       <button class="nav-item" data-view="sources"><span class="nav-symbol">⌁</span><span>Fonte e importação</span></button>
     </nav>
@@ -30,7 +31,7 @@
     <div class="source-mini" id="source-mini"><span class="status-dot waiting"></span><div><strong>Não configurada</strong><small>Conecte um CSV autorizado</small></div></div>
     <div class="sidebar-bottom">
       <div class="sidebar-tip"><span>✦</span><div><strong>Feito para Commander</strong><small>Os dados de hoje serão a base dos seus próximos decks.</small></div></div>
-      <p>v4.0 <span>·</span> Magic: The Gathering<br>Taberna Geek · monitor independente</p>
+      <p>v5.0 <span>·</span> Magic: The Gathering<br>Taberna Geek · monitor independente</p>
     </div>
   </aside>
 
@@ -42,7 +43,7 @@
     <main class="main">
       <section class="view active" id="view-dashboard">
         <div class="page-intro"><div><div class="eyebrow">PAINEL DE CONTROLE <span class="eyebrow-line"></span> MTG SINGLES</div><h1>Seu estoque. <em>Sob controle.</em></h1><p>Uma visão organizada das cartas da Taberna Geek, pronta para consulta, comparação e planejamento de Commander.</p></div><div class="date-meta" id="date-meta">Última importação: —</div></div>
-        <div class="notice" id="global-notice"><span class="notice-icon">i</span><div><strong>Fonte de estoque ainda não conectada</strong><p>O catálogo oficial não está disponível para consulta automatizada. Conecte um CSV completo autorizado ou importe um arquivo; não vamos confundir anúncios históricos com estoque atual.</p></div><button class="text-link" data-open="sources">Configurar fonte ↗</button></div>
+        <div class="notice" id="global-notice"><span class="notice-icon">i</span><div><strong>Catálogo completo ainda não conectado</strong><p>O Deck inteligente consulta cartas individualmente via ReefAPI, quando configurada. Para consultar todo o estoque de uma só vez, você ainda precisa importar um CSV autorizado.</p></div><button class="text-link" data-open="sources">Configurar fonte ↗</button></div>
         <div class="metrics">
           <article class="metric"><div class="metric-top"><span>CARTAS ÚNICAS</span><span class="metric-icon">✧</span></div><strong id="metric-names">—</strong><small>Nomes diferentes no catálogo</small><div class="metric-rule gold"></div></article>
           <article class="metric"><div class="metric-top"><span>OFERTAS</span><span class="metric-icon">▦</span></div><strong id="metric-offers">—</strong><small>Registros de singles catalogados</small><div class="metric-rule blue"></div></article>
@@ -53,7 +54,7 @@
           <section class="panel overview-card"><div class="panel-heading"><div><span class="label-upper">RESUMO</span><h2>Última fotografia do catálogo</h2></div><span class="outline-tag" id="snapshot-type">Sem dados</span></div><div id="snapshot-summary" class="empty-dashboard"><div class="empty-emblem">◈</div><h3>O catálogo começa aqui</h3><p>Importe a primeira planilha para acompanhar preços, quantidades e histórico das singles.</p><button class="button button-outline" data-open="sources">Importar catálogo</button></div></section>
           <section class="panel activity-card"><div class="panel-heading"><div><span class="label-upper">HISTÓRICO</span><h2>Últimas consultas</h2></div><button class="quiet-action" data-open="changes">Ver todas ↗</button></div><div id="recent-snapshots"><div class="empty-list">Nenhuma consulta registrada ainda.</div></div></section>
         </div>
-        <div class="quick-panel"><div><span class="label-upper">PRÓXIMA ETAPA</span><h2>Do estoque ao seu próximo Commander</h2><p>Encontre cartas por cor, acompanhe preços e comece a explorar quais singles servem para seu comandante.</p></div><button class="button button-outline" data-open="commander">Abrir Commander Lab <span>→</span></button></div>
+        <div class="quick-panel"><div><span class="label-upper">PRÓXIMA ETAPA</span><h2>Do estoque ao seu próximo Commander</h2><p>Encontre cartas por cor, acompanhe preços e comece a explorar quais singles servem para seu comandante.</p></div><button class="button button-outline" data-open="builder">Abrir Deck inteligente <span>→</span></button></div>
       </section>
 
       <section class="view" id="view-catalog">
@@ -69,10 +70,44 @@
 
       <section class="view" id="view-commander">
         <div class="page-intro compact"><div><div class="eyebrow">CONSTRUÇÃO DE DECK / FASE 1</div><h1>Commander <em>Lab.</em></h1><p>Confira a identidade de cores e quais singles do catálogo podem entrar no deck.</p></div><span class="outline-tag">PRÉVIA</span></div>
-        <div class="notice"><span class="notice-icon">✦</span><div><strong>Filtro de legalidade e cor, não gerador de deck</strong><p>Esta primeira etapa identifica cartas compatíveis com o comandante. A pontuação de sinergias e a construção automática das 99 cartas serão integradas depois.</p></div></div>
+        <div class="notice"><span class="notice-icon">✦</span><div><strong>Filtro de legalidade e cor, não gerador de deck</strong><p>O filtro desta seção mostra cartas do catálogo importado. Para buscar ofertas e sugerir substitutas, use a nova aba Deck inteligente.</p></div></div>
         <div class="commander-layout"><section class="panel"><span class="label-upper">ESCOLHA SEU COMANDANTE</span><h2 class="inside-title">Uma carta. Infinitas possibilidades.</h2><label class="field commander-search"><span>NOME EXATO DO COMANDANTE</span><input id="commander-input" placeholder="Ex.: The First Sliver" autocomplete="off" /></label><div class="examples">Experimente: <button data-commander="The First Sliver">The First Sliver</button><button data-commander="Nath of the Gilt-Leaf">Nath of the Gilt-Leaf</button><button data-commander="Atraxa, Praetors' Voice">Atraxa</button></div><button class="button button-primary full" id="commander-check">Analisar compatibilidade →</button><div class="commander-note">Para identificar cores e legalidade, utiliza dados públicos da Scryfall — nunca preços ou estoque da Scryfall.</div></section>
         <section class="panel"><div class="panel-heading"><div><span class="label-upper">RESULTADO</span><h2>Cartas compatíveis</h2></div></div><div id="commander-results" class="empty-commander"><div class="empty-emblem">♜</div><p>Escolha um comandante para começar a análise.</p></div></section></div>
         <section class="panel" id="compatible-panel" hidden><div class="panel-heading"><div><span class="label-upper">OFERTAS DO CATÁLOGO</span><h2>Possíveis cartas para o deck</h2></div><span class="outline-tag" id="compatible-total">0 ofertas</span></div><div class="table-scroll"><table><thead><tr><th>CARTA</th><th>EDIÇÃO</th><th>TIPO</th><th>PREÇO</th><th>QUANTIDADE</th></tr></thead><tbody id="compatible-rows"></tbody></table></div><p class="section-note">Resultados limitados aos primeiros 1.000 registros compatíveis; não garantem sinergia nem disponibilidade ao vivo.</p></section>
+      </section>
+
+
+      <section class="view" id="view-builder">
+        <div class="page-intro compact"><div><div class="eyebrow">COMMANDER / ESTOQUE EM PRIMEIRO LUGAR</div><h1>Deck <em>inteligente.</em></h1><p>Confere cada carta na Taberna Geek e, se não houver anúncio da loja, procura uma substituta de função semelhante que também esteja disponível.</p></div><span class="outline-tag">BETA · V5</span></div>
+        <div class="notice"><span class="notice-icon">i</span><div><strong id="builder-connection">Verificando a conexão da loja…</strong><p id="builder-connection-detail">Consultas ao vivo requerem uma chave ReefAPI configurada privadamente no Render. Sem ela, o sistema poderá consultar apenas seu CSV importado, sem alegar estoque atual.</p></div></div>
+        <div class="builder-layout">
+          <section class="panel"><span class="label-upper">01 / ESTRATÉGIA DO DECK</span><h2 class="liga-heading">Escolha o comandante e suas cartas</h2>
+            <label class="field"><span>COMANDANTE</span><input id="builder-commander" placeholder="Ex.: Nath of the Gilt-Leaf" autocomplete="off" /></label>
+            <label class="field"><span>LISTA DE CARTAS — UMA POR LINHA</span><textarea id="builder-decklist" class="liga-textarea" spellcheck="false" placeholder="1 Waste Not
+1 Dark Deal
+1 Necrogen Mists
+1 Liliana's Caress"></textarea></label>
+            <p class="section-note">Aceita listas do Moxfield: <code>1 Nome da Carta</code>. As substituições evitam cartas repetidas da lista. Para não gastar todos os créditos de uma vez, o limite por execução é de 10 cartas e 30 verificações na loja.</p>
+            <div class="builder-buttons"><button id="builder-start" class="button button-primary">✦ Conferir e substituir</button><button id="builder-stop" class="button button-outline" disabled>Parar consultas</button></div>
+          </section>
+          <section class="panel"><span class="label-upper">02 / COMO FUNCIONA</span><h2 class="liga-heading">Decisões baseadas no estoque</h2>
+            <div class="builder-steps">
+              <div><span class="builder-num">01</span><p><strong>Pesquisar a carta</strong><small>Consultar ofertas da loja 41369, não o preço médio do mercado.</small></p></div>
+              <div><span class="builder-num">02</span><p><strong>Encontrou na Taberna?</strong><small>Adicionar à lista com valor, quantidade e momento da consulta.</small></p></div>
+              <div><span class="builder-num">03</span><p><strong>Não há anúncio?</strong><small>Procurar equivalentes legais em Commander usando o texto Oracle da Scryfall.</small></p></div>
+              <div><span class="builder-num">04</span><p><strong>Verificar a substituta</strong><small>Testar cada alternativa no estoque da mesma loja até encontrar uma opção.</small></p></div>
+            </div>
+            <div class="builder-budget"><strong>Uso da API</strong><p>A consulta ao vivo via ReefAPI consome cerca de <strong>4 créditos por carta verificada</strong>. Substitutas verificadas também consomem créditos. Você inicia cada execução manualmente; o sistema não faz buscas em segundo plano.</p><a href="https://reefapi.com/ligamagic-api" target="_blank" rel="noopener noreferrer">Criar chave ReefAPI ↗</a></div>
+          </section>
+        </div>
+        <section class="panel builder-results-panel">
+          <div class="panel-heading"><div><span class="label-upper">03 / RESULTADO AUTOMÁTICO</span><h2>Cartas selecionadas</h2></div><span class="outline-tag" id="builder-progress">Aguardando</span></div>
+          <p class="section-note" id="builder-status">Escolha um comandante e cole uma lista. A seleção ficará salva neste navegador. Resultados são consultas por carta, não uma garantia de reserva ou de estoque físico.</p>
+          <div class="builder-stats"><span id="builder-stat-added">0 adicionadas</span><span id="builder-stat-replaced">0 substituídas</span><span id="builder-stat-checks">0 consultas</span><strong id="builder-stat-total">R$ 0,00</strong></div>
+          <div class="table-scroll"><table><thead><tr><th>CARTA PEDIDA</th><th>SELECIONADA</th><th>POR QUÊ</th><th>PREÇO</th><th>FONTE / DATA</th></tr></thead><tbody id="builder-rows"><tr><td colspan="5" class="table-empty">Nenhuma consulta iniciada.</td></tr></tbody></table></div>
+          <div class="builder-buttons"><button id="builder-export" class="button button-outline">↓ Exportar decklist</button><button id="builder-export-csv" class="button button-outline">↓ Exportar relatório CSV</button><button id="builder-clear" class="button button-outline">Limpar resultados</button></div>
+        </section>
+        <p class="small-explain">Fonte ao vivo: ReefAPI (terceiro, independente da LigaMagic e da Taberna Geek). A ausência de ofertas na consulta não prova que a loja esteja sem a carta fisicamente. Substituições são sugestões heurísticas: revise sinergias, legalidade, curva de mana e cartas duplicadas antes de comprar.</p>
       </section>
 
       <section class="view" id="view-ligamagic">
@@ -92,7 +127,7 @@
       <section class="view" id="view-sources">
         <div class="page-intro compact"><div><div class="eyebrow">DATA PIPELINE</div><h1>Conecte sua <em>fonte.</em></h1><p>Atualize o estoque quando quiser e mantenha versões anteriores para comparações.</p></div></div>
         <div class="notice"><span class="notice-icon">!</span><div><strong>Modo gratuito: dados temporários no servidor</strong><p>O Render gratuito hiberna após inatividade e não oferece disco persistente. O histórico pode desaparecer. Use os botões de backup nesta página após importar qualquer catálogo, e restaure quando necessário.</p></div></div>
-        <div class="notice"><span class="notice-icon">!</span><div><strong>Não existe integração oficial ativa com a Taberna Geek</strong><p>O monitor aceita CSV completo ou feed HTTPS autorizado. A aba LigaMagic permite conferir cartas manualmente na loja 41369, mas ainda não sincroniza preços automaticamente nem comprova o estoque total.</p></div></div>
+        <div class="notice"><span class="notice-icon">!</span><div><strong>Não existe integração oficial ativa com a Taberna Geek</strong><p>O monitor aceita CSV completo ou feed HTTPS autorizado. O Deck inteligente pode consultar ofertas ao vivo via ReefAPI quando você configurar a chave REEF_API_KEY no Render. Isso não cria um espelho do estoque completo.</p></div></div>
         <div class="source-grid">
           <section class="panel source-panel"><div class="source-icon">⇧</div><span class="label-upper">MÉTODO 01</span><h2>Importar CSV</h2><p>Selecione um arquivo de singles MTG fornecido pela Taberna Geek. Cada importação cria uma fotografia independente.</p><label class="dropzone" id="dropzone"><input type="file" id="csv-file" accept=".csv,text/csv,text/plain" /><span class="drop-icon">▤</span><strong id="file-name">Clique para selecionar um CSV</strong><span>ou arraste o arquivo até aqui</span></label><label class="check-row"><input type="checkbox" id="csv-historical" /> Marcar como referência histórica (não é estoque atual)</label><button class="button button-primary full" id="upload-button">Importar catálogo →</button><a class="muted-link" href="/api/export.csv">Baixar último catálogo como CSV</a></section>
           <section class="panel source-panel"><div class="source-icon">↻</div><span class="label-upper">MÉTODO 02</span><h2>Feed CSV autorizado</h2><p>Caso a loja forneça uma URL HTTPS pública para o arquivo completo, você poderá consultá-la sob demanda.</p><label class="field"><span>URL HTTPS DO ARQUIVO CSV</span><input id="feed-url" type="url" placeholder="https://loja.exemplo/estoque.csv" /></label><button class="button button-outline full" id="save-feed">Salvar endereço</button><button class="button button-primary full" id="sync-button">↻ Consultar feed agora</button><p class="source-footnote">Sem feed configurado, a consulta automática não pode verificar o estoque real. Nenhuma consulta é executada em segundo plano.</p></section>

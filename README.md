@@ -1,140 +1,52 @@
-# Taberna Vault v4 — LigaMagic: Taberna Geek (41369)
+# Taberna Vault v5 — busca com substituição automática para Commander
 
-A versão 4 preserva a configuração gratuita do Render e adiciona a aba **LigaMagic · loja 41369**, com acesso à página que o usuário informou: https://www.ligamagic.com.br/?view=mp/showcase/home&id=41369
+Esta versão implementa o fluxo **verificar carta → escolher se disponível na Taberna Geek (loja LigaMagic 41369) → sugerir carta de função semelhante quando não houver anúncio → verificar a substituta na mesma loja → adicionar somente resultados com oferta identificada**.
 
-## Novo fluxo
+## Para publicar sem programação
 
-1. Na aba LigaMagic, cole uma decklist (uma carta por linha, por exemplo `1 Sol Ring`).
-2. Clique em **Preparar buscas**.
-3. Clique em **Buscar carta** para pesquisar na LigaMagic (a busca é **global**, não filtrada pela loja).
-4. Confirme manualmente que o vendedor da oferta é **Taberna Geek**, ID **41369**, antes de digitar preço e quantidade.
-5. Clique em **Salvar**; os valores são guardados no `localStorage` do navegador (não no SQLite).
-6. Baixe um **CSV de conferências manuais** para conservar os resultados. O arquivo é parcial e não deve ser tratado como catálogo completo nem importado como estoque total.
+Leia **PUBLICAR_SEM_PROGRAMAR.txt**, que contém os cliques no GitHub e Render.
 
-**Importante:** a LigaMagic responde HTTP 403 a consultas automatizadas neste ambiente. Esta versão **NÃO** sincroniza automaticamente preços, quantidades nem o estoque inteiro. A pesquisa por carta não filtra automaticamente por loja.
+- O ZIP é um projeto Python web com página HTML; não é preciso saber programar.
+- No GitHub, coloque todos os arquivos na raiz do repositório, inclusive `builder_engine.py` (novo na v5).
+- No Render, use o **plano Free** já configurado; não adicione disco pago.
+- Defina a variável secreta `REEF_API_KEY` com a chave da sua conta [ReefAPI](https://reefapi.com/ligamagic-api). **Nunca envie a chave ao GitHub nem ao chat.**
+- A variável `TABERNA_ADMIN_TOKEN` continua obrigatória para uso em site público. Aplique essa chave na seção Fonte e importação dentro do webapp.
+- O Render pode exigir que você salve as alterações e clique em **Manual Deploy → Deploy latest commit**.
+- Abra **Deck inteligente**, escolha o comandante e cole até **10 cartas por execução** (`1 Nome da Carta` por linha).
+- Clique em **Conferir e substituir**; o app solicita sua confirmação antes de gastar créditos.
+- Baixe a decklist TXT ou o relatório CSV; os resultados são salvos no navegador.
 
-## Publicação no Render gratuito
+## Fontes e custos
 
-Mantenha o mesmo serviço existente e substitua os arquivos na raiz do repositório GitHub (inclusive `index.html`, `app.js`, `styles.css`). O `render.yaml` continua no plano Free, sem disco permanente. Os backups do SQLite seguem necessários para catálogo importado. As conferências manuais ficam no navegador do usuário e devem ser exportadas como CSV.
+A fonte ao vivo é uma **API de terceiros**, ReefAPI, que consulta anúncios da LigaMagic. Ela não é uma API oficial da Taberna Geek nem uma integração feita pela loja. A documentação da ReefAPI anuncia **1.000 créditos gratuitos iniciais** (sem cartão) e **4 créditos por consulta de carta**, sujeitos a mudanças pelo provedor. Até 30 verificações por execução (até 120 créditos), incluindo substitutas, e sem buscas em segundo plano.
 
-# Taberna Vault — versão Render gratuita
+- Um resultado **disponível** requer oferta da loja 41369, preço e quantidade informados para o número de cópias pedido.
+- **Sem oferta identificada** significa que a consulta não encontrou anúncio na LigaMagic; não comprova estoque físico zero.
+- **Inconclusivo** significa que a resposta não permitiu validar quantidade, loja ou cobertura; o programa não marca como indisponível nem substitui automaticamente.
+- O limite de anúncios retornados é 2.000 por carta. Se houver indícios de paginação incompleta, a resposta ficará **inconclusiva** quando nenhuma oferta compatível for encontrada.
+- Sem `REEF_API_KEY`, só é possível procurar no último catálogo CSV importado, com **aviso de que os valores não são uma consulta ao vivo**.
+- As fontes históricas nunca serão tratadas como estoque atual.
 
-**Sem plano Free, sem disco pago:** veja [PUBLICAR_SEM_PROGRAMAR.txt](PUBLICAR_SEM_PROGRAMAR.txt).
+A Scryfall fornece textos Oracle, cor e legalidade em Commander para produzir uma lista curta de candidatos. As recomendações são **heurísticas de função** (descarte, fichas, sacrifício, ramp, remoções, tribos etc.), não análises completas de combos. A versão evita repetição de nomes presentes na lista fornecida. Revise manualmente sinergias, quantidades, preço, condição e possíveis restrições antes de comprar.
 
-> ⚠️ O banco SQLite é temporário na hospedagem gratuita. Dados podem sumir ao hibernar,
-> reiniciar ou republicar. Baixe o backup ZIP após cada importação e restaure conforme necessário.
+## Arquivos
 
-O arquivo `render.yaml` já declara `plan: free`, sem bloco `disk`. O banco fica em `/tmp`.
-A API ganhou `/api/backup.zip` (GET, autenticado) e `/api/restore` (POST, arquivo ZIP,
-chave de administrador) para salvar e restaurar ofertas, histórico e metadados.
+- `app.py`: API Python existente, importação CSV, histórico e rotas `/api/builder/*`
+- `builder_engine.py`: consulta ReefAPI, análise de ofertas por loja, candidatos Scryfall
+- `app.js` + `index.html` + `styles.css`: interface web
+- `render.yaml` e `Dockerfile`: publicação gratuita no Render
+- `tests/`: testes automatizados, incluindo respostas simuladas de ofertas
 
-# Taberna Vault — Webapp de singles MTG (v2)
+## Situação dos testes
 
-Webapp responsivo para **Magic: The Gathering da Taberna Geek**. Base para um futuro construtor de decks Commander. Interface HTML/CSS/JS (sem build) + API Python standard library + SQLite.
+As rotas e o algoritmo foram testados localmente com **respostas simuladas** da ReefAPI e da Scryfall. Não foi possível executar uma consulta real à ReefAPI da sua conta porque nenhuma chave foi fornecida. Caso o serviço de terceiros altere a estrutura dos dados, poderá ser necessário ajustar o adaptador. A versão não afirma que cartas da Taberna Geek estão disponíveis até receber uma resposta verificável.
 
-## Status da fonte
+## Rotas novas
 
-**Não há integração ao vivo garantida com a Taberna Geek.** O site oficial bloqueou as consultas automatizadas e não foi identificado um feed/API pública e autorizada. O aplicativo **não inventa estoque atual**: permite carregar um CSV fornecido pela loja ou consultar, **sob demanda**, uma URL HTTPS de CSV autorizada pela própria loja. A hora da importação *não* é a hora da disponibilidade, a menos que a origem confirme isso. Referências históricas devem ser importadas com a opção "Marcar como referência histórica".
+- `GET /api/builder/status`: mostra se a chave ReefAPI está configurada (nunca retorna a chave)
+- `POST /api/builder/availability`: verifica uma carta e quantidade na loja 41369; exige token de admin se configurado
+- `POST /api/builder/candidates`: sugere alternativas por texto Oracle e identidade de cores; exige token de admin se configurado
 
-## Rodar agora no computador
+A API do restante do Taberna Vault v4 foi preservada. O banco SQLite no Render Free não tem persistência garantida: faça backup de importações. As escolhas do Deck inteligente ficam no armazenamento local do navegador, que também pode ser apagado. Exporte o TXT/CSV.
 
-Requer **Python 3.10+**. Não exige instalação de bibliotecas. No macOS, também é possível tentar abrir o arquivo `iniciar-mac.command`; no Windows, `iniciar-windows.bat`. Esses atalhos abrem o app no navegador e precisam que o Python já esteja instalado.
-
-```bash
-python app.py
-```
-
-Abra **http://127.0.0.1:8765** no navegador.
-
-O banco `taberna_inventory.sqlite3` é criado ao lado dos arquivos (não incluído no ZIP). Para manter o histórico, guarde esse banco. No modo local, não é necessário token.
-
-## Rodar como webapp com Docker
-
-Requer Docker com Docker Compose. Use um token forte para proteger uploads, consultas e configuração do feed:
-
-```bash
-cp .env.example .env
-# edite .env e substitua o texto de exemplo por um token longo e secreto
-docker compose up --build -d
-```
-
-Abra **http://localhost:8765**. Em **Fonte e importação → Chave de administrador**, digite o mesmo token definido no `.env` para autorizar operações de edição. O token é guardado apenas na sessão do navegador, não no banco.
-
-O volume Docker `taberna-data` preserva o SQLite entre reinicializações e atualizações do container. Ao executar em rede, configure HTTPS na camada de proxy/hospedagem.
-
-## Publicar na internet (Render)
-
-Inclui `render.yaml` e `Dockerfile`. Para publicar:
-
-1. Envie os arquivos deste projeto para um **repositório GitHub** (não envie `.env` ou o banco `.sqlite3`).
-2. No Render, escolha **New → Blueprint**, conecte o repositório e autorize a criação da aplicação.
-3. Configure `TABERNA_ADMIN_TOKEN` com uma chave longa e exclusiva, quando solicitado.
-4. Habilite o banco temporário (use backup) definido no `render.yaml` e publique. O arquivo indica o plano *starter* (pode haver cobrança; confira as condições vigentes no Render).
-5. Acesse a URL HTTPS criada pelo Render, entre em **Fonte e importação**, aplique a chave e importe um CSV ou configure um feed autorizado.
-
-**Não basta enviar somente o HTML a uma hospedagem estática.** As consultas, o histórico, o banco de dados e o acesso à Scryfall precisam da API Python.
-
-O aplicativo não está hospedado por padrão. O ZIP permite rodar e implantar, mas não cria uma URL pública automaticamente.
-
-## Como usar
-
-- **Visão geral:** métricas, fonte do último catálogo, últimas consultas.
-- **Catálogo de singles:** pesquisa por nome, edição e disponibilidade, ordenação por preço/quantidade e paginação.
-- **Alterações:** comparação entre duas importações **completas e comparáveis**.
-- **Commander Lab:** busca um comandante pela Scryfall e filtra ofertas por identidade de cores e legalidade. Cartas não enriquecidas aparecem como não verificadas, não como ilegais. **Não é ainda um gerador de decks sinérgicos**.
-- **Fonte e importação:** CSV com sinalização de histórico, endereço do feed CSV autorizado, consulta sob demanda, enriquecimento Scryfall, exportação JSON/CSV, controle de token.
-
-## Modelo de CSV
-
-Arquivo de exemplo em `examples/modelo_estoque_preencher.csv`:
-
-```csv
-nome;edicao;numero;preco;quantidade;idioma;condicao;acabamento;url;observado_em
-Sol Ring;CMM;396;5,90;2;EN;NM;nonfoil;https://exemplo.com/carta;2026-11-09
-Arcane Signet;ELD;331;2,50;4;PT;NM;nonfoil;https://exemplo.com/carta;2026-11-09
-```
-
-**Estas são linhas ilustrativas e não representam estoque da Taberna Geek.**
-
-Obrigatório: nome + preço e/ou quantidade. Aceita vírgula, ponto e vírgula ou TAB como delimitador e preço brasileiro com vírgula decimal. Preços e quantidades ausentes permanecem desconhecidos. Ao usar `Quantidade > 0`, apenas reflete o estado da última fonte importada.
-
-O arquivo `examples/historico_verificado_setembro_2026.csv` contém referências **históricas** e **incompletas**; não representa o catálogo atual. Caso queira testá-lo, marque a opção histórica no painel.
-
-## API para futura integração Commander
-
-| Método | Rota | O que retorna |
-|---|---|---|
-| GET | `/api/status` | Origem, hora, métricas, necessidade de chave |
-| GET | `/api/cards?q=sliver&set=mh1&stock=1&sort=price_asc&limit=35&offset=0` | Ofertas com `total` e paginação |
-| GET | `/api/snapshots` | Histórico de importações |
-| GET | `/api/changes` | Entradas, saídas e alterações |
-| GET | `/api/export.json` | Base do último snapshot com metadados Scryfall |
-| GET | `/api/export.csv` | Exportação de ofertas em CSV |
-| POST | `/api/upload` | Importação CSV `{csv, filename, historical}` |
-| POST | `/api/feed` | Configurar URL do CSV `{url}` |
-| POST | `/api/sync` | Consultar feed HTTPS previamente configurado |
-| POST | `/api/enrich` | Metadados Scryfall `{limit}` |
-| POST | `/api/commander` | Filtrar por cores/legalidade `{name}` |
-| GET | `/health` | Verificação de integridade básica da API |
-
-Ao publicar externamente, todos os POSTs exigem `X-Admin-Token: <seu token>` (definido em `TABERNA_ADMIN_TOKEN`); os GETs são somente leitura. A URL do feed configurada aparece no status GET; **não insira tokens de acesso ou credenciais no endereço**.
-
-O endpoint Commander é de triagem e **não calcula pontuação de sinergia, combos ou listas de 100 cartas**. Esse é o escopo de uma etapa futura usando dados Oracle e estoque com procedência confirmada.
-
-## Segurança e limitações
-
-- Não faz crawler em páginas bloqueadas, não quebra proteção antibot nem faz consultas em segundo plano.
-- Feeds devem ser HTTPS público, sem redirecionamentos; há validação de endereços privados para reduzir riscos de SSRF.
-- Este é um aplicativo para uso pessoal ou pequena equipe, não uma plataforma multiusuário: a chave controla escrita; **os GETs, inclusive exportação e feed configurado, são públicos se a URL for pública**.
-- O servidor usa Python `http.server` da biblioteca padrão; publique atrás do TLS/reverse proxy da hospedagem. Para uso com alta concorrência, recomenda-se substituir por stack WSGI/ASGI, autenticação por usuário e armazenamento gerenciado.
-- Importação automática só será possível com acesso legítimo e estável a um feed oficial atualizado. Sem isso, o botão exibe a limitação.
-- A Scryfall fornece características de cartas, não estoque, preços nem ofertas da Taberna Geek.
-- Em hospedagens sem banco temporário (use backup), perderá o banco ao reiniciar. O `render.yaml` inclui banco temporário (use backup).
-
-## Testes
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-Os testes de parser, snapshots, diff e filtros são locais; não fazem consultas externas à loja nem à Scryfall.
+**URLs de referência:** https://reefapi.com/ligamagic-api , https://reefapi.com/docs/ligamagic , https://www.ligamagic.com.br/?view=mp/showcase/home&id=41369 , https://scryfall.com/docs/api

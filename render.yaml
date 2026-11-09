@@ -8,6 +8,8 @@ services:
     envVars:
       - key: TABERNA_ADMIN_TOKEN
         sync: false
+      - key: REEF_API_KEY
+        sync: false
       - key: TABERNA_DB
         value: /tmp/taberna_inventory.sqlite3
       - key: HOST

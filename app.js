@@ -38,7 +38,7 @@ function view(which){
   currentView=which;
   $$('.view').forEach(el=>el.classList.toggle('active',el.id==='view-'+which));
   $$('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.view===which));
-  $('#breadcrumb-current').textContent=({'dashboard':'Visão geral','catalog':'Catálogo de singles','changes':'Alterações','commander':'Commander Lab','ligamagic':'LigaMagic · Taberna Geek','sources':'Fonte e importação'})[which]||which;
+  $('#breadcrumb-current').textContent=({'dashboard':'Visão geral','catalog':'Catálogo de singles','changes':'Alterações','commander':'Commander Lab','ligamagic':'LigaMagic · Taberna Geek','builder':'Deck inteligente','sources':'Fonte e importação'})[which]||which;
   $('#sidebar').classList.remove('shown');
   window.scrollTo({top:0,behavior:'smooth'});
   if(which==='catalog')search();
@@ -56,7 +56,7 @@ function sourceState(s){
   $('#top-state').innerHTML=`<span class="status-dot ${!s?'waiting':isHistoric?'warn':'good'}"></span><span>${esc(label)}</span>`;
   $('#source-mini').innerHTML=`<span class="status-dot ${!s?'waiting':isHistoric?'warn':'good'}"></span><div><strong>${s ? esc(SOURCE_KIND[kind]||'Importação') : 'Não configurada'}</strong><small>${s?esc(date(s.imported_at)):'Conecte um CSV autorizado'}</small></div>`;
   $('#date-meta').textContent=`Última importação: ${s?date(s.imported_at):'—'}`;
-  $('#global-notice').innerHTML=s ? `<span class="notice-icon">${isHistoric?'!':'i'}</span><div><strong>${isHistoric?'Você está vendo dados históricos':'Estoque baseado no último arquivo importado'}</strong><p>${isHistoric?'Estas ofertas são referências antigas e não indicam cartas disponíveis hoje.':'A data de importação não prova que o estoque da loja estava atualizado naquele instante. Consulte a data de observação da fonte.'}</p></div><button class="text-link" data-open="sources">Ver origem ↗</button>` : `<span class="notice-icon">i</span><div><strong>Fonte de estoque ainda não conectada</strong><p>O catálogo oficial não está disponível para consulta automatizada. Conecte um CSV completo autorizado ou importe um arquivo; não vamos confundir anúncios históricos com estoque atual.</p></div><button class="text-link" data-open="sources">Configurar fonte ↗</button>`;
+  $('#global-notice').innerHTML=s ? `<span class="notice-icon">${isHistoric?'!':'i'}</span><div><strong>${isHistoric?'Você está vendo dados históricos':'Estoque baseado no último arquivo importado'}</strong><p>${isHistoric?'Estas ofertas são referências antigas e não indicam cartas disponíveis hoje.':'A data de importação não prova que o estoque da loja estava atualizado naquele instante. Consulte a data de observação da fonte.'}</p></div><button class="text-link" data-open="sources">Ver origem ↗</button>` : `<span class="notice-icon">i</span><div><strong>Catálogo completo ainda não conectado</strong><p>Para conferências de cartas e substituições no Commander, use Deck inteligente (com chave ReefAPI). Para ver todo o catálogo, importe um CSV autorizado. Anúncios históricos nunca serão apresentados como estoque atual.</p></div><button class="text-link" data-open="sources">Configurar fonte ↗</button>`;
   $('#global-notice').querySelector('[data-open]').onclick=()=>view('sources');
 }
 function summary(s){
@@ -141,7 +141,7 @@ $('#upload-button').addEventListener('click',async()=>{
 });
 $('#save-feed').addEventListener('click',()=>operation($('#save-feed'),'/api/feed',{url:$('#feed-url').value.trim()},()=>toast('Endereço do feed salvo. A consulta ocorre somente quando você solicitar.','success')));
 const sync=async(btn)=>{
-  if(!$('#feed-url').value.trim()){view('sources');toast('Nenhum feed autorizado configurado. Importe um CSV ou informe a URL fornecida pela loja.','error');return}
+  if(!$('#feed-url').value.trim()){if(builderLive){view('builder');toast('A busca ao vivo funciona por carta no Deck inteligente. Não há feed completo para sincronizar.','info')}else{view('sources');toast('Nenhum feed CSV configurado. Consulte Deck inteligente ou importe um CSV.','error')}return}
   await operation(btn,'/api/sync',{},r=>toast(`Consulta concluída: ${number(r.rows)} ofertas importadas. Confira a data da fonte.`,'success'));
 };
 $('#sync-button').addEventListener('click',()=>sync($('#sync-button')));
@@ -285,3 +285,180 @@ $('#liga-clear').addEventListener('click',()=>{
 });
 if($('#liga-decklist').value.trim())ligaCards=ligaParse($('#liga-decklist').value);
 ligaRender();
+
+// ===== V5: Commander inteligente, verificação por carta e substituição funcional =====
+// Nenhum segredo ReefAPI é enviado ao navegador; apenas o token de administrador
+// é usado para permitir consultas autenticadas no servidor.
+const BUILDER_STORE = 'taberna-vault-builder-v5';
+const BUILDER_LIMIT = 10;
+const BUILDER_CALL_LIMIT = 30;
+let builderRunning = false;
+let builderStopRequested = false;
+let builderResults = [];
+let builderChecks = 0;
+let builderLive = false;
+function builderLoad(){
+  try{
+    const data=JSON.parse(localStorage.getItem(BUILDER_STORE)||'{}');
+    if(data && typeof data==='object' && Array.isArray(data.rows)){
+      builderResults=data.rows.slice(0,200);
+      $('#builder-commander').value=String(data.commander||'').slice(0,180);
+      $('#builder-decklist').value=String(data.decklist||'').slice(0,20000);
+    }
+  }catch{}
+  builderRender();
+}
+function builderPersist(){
+  try{localStorage.setItem(BUILDER_STORE,JSON.stringify({
+    rows:builderResults,commander:$('#builder-commander').value,decklist:$('#builder-decklist').value,
+    stored_at:new Date().toISOString()
+  }))}catch{toast('Não foi possível preservar a lista no navegador. Exporte o relatório.','error')}
+}
+async function builderConnection(){
+  try{
+    const d=await api('/api/builder/status');
+    builderLive=!!d.live_enabled;
+    $('#builder-connection').textContent=d.live_enabled ? 'Fonte ao vivo habilitada: ReefAPI → LigaMagic → Taberna Geek #41369' : d.snapshot_available ? 'Fonte ao vivo desligada; utilizando somente o catálogo importado' : 'Ainda sem fonte para verificar disponibilidade';
+    $('#builder-connection-detail').textContent=d.live_enabled ? 'Cada carta consultada exige créditos da ReefAPI. A consulta confirma uma oferta anunciada na loja, não reserva a carta. A chave fica apenas no servidor.' : d.snapshot_available ? 'As verificações refletem a data do CSV, não o estoque de hoje. Para busca ao vivo, cadastre REEF_API_KEY nas variáveis do Render.' : 'Para conferir anúncios atuais automaticamente, cadastre REEF_API_KEY nas variáveis do Render. A ReefAPI oferece um teste gratuito com limite de créditos.';
+  }catch(e){$('#builder-connection').textContent='Falha na configuração: '+e.message}
+}
+function builderStatus(text){$('#builder-status').textContent=text}
+function builderRender(){
+  const added=builderResults.filter(r=>r.kind==='original'||r.kind==='substitute');
+  const replaced=added.filter(r=>r.kind==='substitute');
+  const total=added.reduce((s,r)=>s+(Number(r.price_cents||0)*Number(r.needed||1)),0);
+  $('#builder-stat-added').textContent=added.length+' adicionadas';
+  $('#builder-stat-replaced').textContent=replaced.length+' substituídas';
+  $('#builder-stat-checks').textContent=builderChecks+' verificações nesta execução';
+  $('#builder-stat-total').textContent=money(total);
+  $('#builder-rows').innerHTML=builderResults.length?builderResults.map(r=>{
+    const good=r.kind==='original'||r.kind==='substitute';
+    const cls=good?'ok':r.kind==='unknown'?'warn':'error';
+    const title=r.kind==='substitute'?'SUBSTITUIÇÃO':r.kind==='original'?'NA LISTA':r.kind==='unknown'?'NÃO CONFIRMADO':'SEM OPÇÃO CONFIRMADA';
+    const url=safeUrl(r.url||'');
+    return `<tr><td><strong>${esc(r.original)}</strong><span class="builder-subline">${number(r.needed||1)} un.</span></td>
+      <td>${good?`<strong>${esc(r.selected)}</strong>${r.kind==='substitute'?`<span class="builder-subline">Substitui ${esc(r.original)}</span>`:''}`:'<span class="muted">—</span>'}<span class="builder-state ${cls}">${title}</span></td>
+      <td><span class="builder-subline">${esc(r.reason||'—')}</span>${url?`<a class="link-arrow" href="${esc(url)}" rel="noopener noreferrer" target="_blank">Ver oferta ↗</a>`:''}</td>
+      <td class="money">${good?money(r.price_cents):'—'}</td>
+      <td><span class="builder-subline">${esc(r.source||'—')}</span><span class="builder-subline">${esc(date(r.checked_at))}</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" class="table-empty">Nenhuma consulta iniciada.</td></tr>';
+}
+function builderExtract(result,entry,kind,reason){
+  const selected=kind==='substitute'?result.card:entry.name;
+  return {kind,original:entry.name,needed:entry.need,selected,
+    reason,price_cents:result.price_cents,quantity:result.quantity,
+    source:result.source||'',checked_at:result.checked_at||'',
+    url:(result.offer||{}).url||'',source_kind:result.source_kind||'unknown'};
+}
+async function builderAvailability(card,qty,cache){
+  const cacheKey=ligaKey(card)+'|'+qty;
+  if(cache.has(cacheKey))return cache.get(cacheKey);
+  if(builderChecks>=BUILDER_CALL_LIMIT)throw Error('Limite de 30 consultas por execução atingido. Exporte a lista e inicie outra rodada.');
+  builderChecks++;
+  const result=await api('/api/builder/availability',{method:'POST',body:{card,quantity:qty}});
+  cache.set(cacheKey,result);
+  $('#builder-stat-checks').textContent=builderChecks+' verificações nesta execução';
+  return result;
+}
+async function builderOne(entry,commander,allNames,usedNames,cache){
+  builderStatus(`Conferindo ${entry.name} na Taberna Geek…`);
+  const wanted=await builderAvailability(entry.name,entry.need,cache);
+  if(wanted.status==='available'||wanted.status==='snapshot_available'){
+    return builderExtract(wanted,entry,'original',wanted.status==='snapshot_available'?'Oferta presente no último CSV, sem verificação ao vivo.':'Carta original anunciada pela loja na consulta ao vivo.');
+  }
+  if(!['not_listed','snapshot_not_found'].includes(wanted.status)){
+    return builderExtract(wanted,entry,'unknown',wanted.message||'A fonte não confirmou a disponibilidade da carta.');
+  }
+  if(builderStopRequested)return builderExtract(wanted,entry,'unknown','Consulta interrompida pelo usuário.');
+  builderStatus(`${entry.name} não teve oferta identificada. Procurando sinergias com ${commander}…`);
+  const proposals=await api('/api/builder/candidates',{method:'POST',body:{card:entry.name,commander}});
+  if(!proposals.candidates?.length){
+    return builderExtract(wanted,entry,'unknown','Nenhuma alternativa funcional foi identificada; '+(proposals.notice||''));
+  }
+  let inconclusive=0;
+  for(const candidate of proposals.candidates){
+    if(builderStopRequested)break;
+    if(builderChecks>=BUILDER_CALL_LIMIT)break;
+    if(allNames.has(ligaKey(candidate.name))||usedNames.has(ligaKey(candidate.name)))continue;
+    builderStatus(`${entry.name} → verificando substituta ${candidate.name} na loja…`);
+    const checked=await builderAvailability(candidate.name,entry.need,cache);
+    if(checked.status==='available'||checked.status==='snapshot_available'){
+      usedNames.add(ligaKey(candidate.name));
+      return builderExtract(checked,entry,'substitute',
+        `${candidate.reason}. ${checked.status==='snapshot_available'?'Oferta no CSV importado, não confirmada ao vivo.':'Substituta com oferta encontrada na loja.'}`);
+    }
+    if(['unknown','unconfigured'].includes(checked.status))inconclusive++;
+  }
+  return builderExtract(wanted,entry,'unknown',builderChecks>=BUILDER_CALL_LIMIT?'Limite de verificações atingido antes de confirmar uma substituta.':
+    builderStopRequested?'Pesquisa interrompida.':inconclusive?'Alternativas encontradas, mas parte do estoque não pôde ser confirmado.':'Nenhuma substituta com oferta confirmada foi encontrada entre as candidatas analisadas.');
+}
+$('#builder-start').addEventListener('click',async()=>{
+  if(builderRunning)return;
+  const commander=$('#builder-commander').value.trim();
+  const list=ligaParse($('#builder-decklist').value);
+  if(!commander||commander.length>180)return toast('Informe o nome do comandante.','error');
+  if(!list.length)return toast('Cole pelo menos uma carta na lista.','error');
+  if(list.length>BUILDER_LIMIT)return toast(`Para controlar os créditos, selecione até ${BUILDER_LIMIT} cartas por execução. Divida uma decklist grande em lotes.`,'error');
+  if(list.some(r=>r.need>100))return toast('Quantidade máxima de 100 por linha.','error');
+  const isLive=builderLive;
+  if(!isLive&&!confirm('Sem chave ReefAPI configurada: o sistema usará apenas o último CSV importado (se existir). Continuar sem verificação ao vivo?'))return;
+  if(isLive&&!confirm(`Você vai verificar até ${list.length} cartas e possíveis substitutas, com limite de ${BUILDER_CALL_LIMIT} chamadas pagas em créditos da ReefAPI (até ${BUILDER_CALL_LIMIT*4} créditos). Continuar?`))return;
+  builderRunning=true;builderStopRequested=false;builderChecks=0;
+  const start=$('#builder-start');start.disabled=true;
+  $('#builder-stop').disabled=false;
+  builderResults=[];builderRender();builderPersist();
+  const allNames=new Set(list.map(x=>ligaKey(x.name)));allNames.add(ligaKey(commander));
+  const usedNames=new Set();const cache=new Map();
+  let stoppedForError=false;
+  try{
+    for(let i=0;i<list.length;i++){
+      if(builderStopRequested)break;
+      if(builderChecks>=BUILDER_CALL_LIMIT){builderStatus('Limite de verificações atingido.');break;}
+      $('#builder-progress').textContent=`${i+1}/${list.length}`;
+      try{
+        const result=await builderOne(list[i],commander,allNames,usedNames,cache);
+        builderResults.push(result);
+        if(result.kind==='original')usedNames.add(ligaKey(result.selected));
+        builderRender();builderPersist();
+      }catch(e){
+        const msg=e.message||'Falha na consulta';
+        builderResults.push({kind:'unknown',original:list[i].name,needed:list[i].need,selected:'',reason:msg,source:'Erro de consulta',checked_at:new Date().toISOString()});
+        builderRender();builderPersist();
+        builderStatus('Consulta interrompida: '+msg);
+        stoppedForError=true;
+        break; // Evitar gastar mais créditos após um erro na fonte.
+      }
+    }
+    if(!stoppedForError)builderStatus(builderStopRequested?'Interrompido. Resultados anteriores foram preservados.':
+      `Busca concluída. ${builderResults.filter(r=>r.kind==='original'||r.kind==='substitute').length} cartas selecionadas. Confirme as ofertas antes de comprar.`);
+  }finally{
+    builderRunning=false;
+    start.disabled=false;$('#builder-stop').disabled=true;
+    $('#builder-progress').textContent=`${builderResults.length}/${list.length} analisadas`;
+    builderPersist();
+  }
+});
+$('#builder-stop').addEventListener('click',()=>{builderStopRequested=true;builderStatus('Parando após a consulta em andamento…')});
+function builderDownload(name,content,type){
+  const url=URL.createObjectURL(new Blob([content],{type}));
+  const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+}
+$('#builder-export').addEventListener('click',()=>{
+  const selected=builderResults.filter(r=>r.kind==='original'||r.kind==='substitute');
+  if(!selected.length)return toast('Nenhuma carta foi selecionada ainda.','error');
+  builderDownload('taberna-commander-selecionadas.txt',selected.map(r=>`${r.needed} ${r.selected}`).join('\n')+'\n','text/plain;charset=utf-8');
+});
+$('#builder-export-csv').addEventListener('click',()=>{
+  if(!builderResults.length)return toast('Ainda não existem resultados para exportar.','error');
+  const quoteCSV=x=>'"'+String(x??'').replace(/"/g,'""')+'"';
+  const head=['original','quantidade','selecionada','situacao','motivo','preco_unitario_reais','quantidade_na_loja','fonte','consulta_em','url'];
+  const lines=[head,...builderResults.map(r=>[r.original,r.needed,r.selected,r.kind,r.reason,r.price_cents==null?'':(r.price_cents/100).toFixed(2).replace('.',','),r.quantity??'',r.source,r.checked_at,r.url])];
+  builderDownload('taberna-commander-relatorio.csv','\ufeff'+lines.map(x=>x.map(quoteCSV).join(';')).join('\r\n'),'text/csv;charset=utf-8');
+});
+$('#builder-clear').addEventListener('click',()=>{
+  if(builderRunning)return toast('Pare a consulta antes de limpar.','error');
+  if(!confirm('Apagar os resultados salvos neste navegador?'))return;
+  builderResults=[];builderChecks=0;builderRender();builderPersist();
+  $('#builder-progress').textContent='Aguardando';builderStatus('Resultados limpos.');
+});
+builderLoad();builderConnection();
